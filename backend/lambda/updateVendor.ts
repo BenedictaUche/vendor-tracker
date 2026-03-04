@@ -40,7 +40,7 @@ export const handler = async (event: any) => {
             statusCode: 500,
             headers: {
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "UPDATE,OPTIONS",
+                "Access-Control-Allow-Methods": "PUT,OPTIONS",
                 "Content-Type": "application/json",
              },
             body: JSON.stringify({ error: "Internal Server Error" }),

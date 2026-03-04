@@ -2,11 +2,11 @@
 import { useEffect, useState } from 'react';
 import { createVendor, getVendors, deleteVendor, updateVendor } from '@/lib/api';
 import { Vendor } from '@/types/vendor';
-import { withAuthenticator } from '@aws-amplify/ui-react';
+import { withAuthenticator, type WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 
 
-function Home({ signOut, user }: { signOut?: () => void; user?: any }) {
+function Home({ signOut, user }: WithAuthenticatorProps) {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [form, setForm] = useState({ name: '', category: '', contactEmail: '' });
   const [loading, setLoading] = useState(false);

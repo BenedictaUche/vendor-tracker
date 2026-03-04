@@ -53,9 +53,13 @@ export const deleteVendor = async (vendorId: string) => {
 };
 
 export const updateVendor = async (vendor: Vendor) => {
+    const token = await getAuthToken();
     const response = await fetch(`${BASE_URL}/vendors`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token || ""
+        },
         body: JSON.stringify(vendor),
     });
 

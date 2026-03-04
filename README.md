@@ -1,4 +1,4 @@
-# Vendor Tracker — Full-Stack AWS App with React and CDK
+# Vendor Tracker - Full-Stack AWS App with React and CDK
 
 A full-stack vendor management application built with Next.js, AWS CDK, Lambda, DynamoDB, and Cognito. Built as a learning reference for frontend developers transitioning into cloud and serverless development.
 
@@ -11,12 +11,12 @@ A full-stack vendor management application built with Next.js, AWS CDK, Lambda, 
 Vendor Tracker is a CRUD application that lets authenticated users create, read, and delete vendor records stored in DynamoDB. The entire backend infrastructure is defined as TypeScript code using AWS CDK and deploys with a single command.
 
 **Who this is for:**
-Frontend developers who understand React and want a concrete, working example of a serverless AWS backend — with authentication — that they can clone, deploy, and modify.
+Frontend developers who understand React and want a concrete, working example of a serverless AWS backend, with authentication, that they can clone, deploy, and modify.
 
 **Core features:**
 - Create, read, and delete vendor records
 - JWT-based authentication via Amazon Cognito
-- Protected API routes — unauthenticated requests are rejected at the API Gateway level
+- Protected API routes - unauthenticated requests are rejected at the API Gateway level
 - Infrastructure defined as code (no clicking through the AWS Console to deploy)
 - Frontend deployed to CloudFront with HTTPS out of the box
 
@@ -288,6 +288,6 @@ CDK will prompt for confirmation before deleting. The S3 bucket and DynamoDB tab
 
 This repository is the reference implementation for the tutorial:
 
-**[Insert article title + link]**
+**[[Build a Fullstack vendor management app using React, AWS and CDK](https://techwriterb.medium.com/build-a-full-stack-vendor-management-app-using-react-aws-and-cdk-51941832c566)]**
 
 The article covers every step from AWS account setup through CDK deployment, authentication, and CloudFront hosting, with explanations of each architectural decision.
