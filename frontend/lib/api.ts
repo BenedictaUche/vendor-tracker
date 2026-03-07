@@ -1,7 +1,7 @@
 import { Vendor } from "@/types/vendor";
 import { fetchAuthSession } from 'aws-amplify/auth';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 const getAuthToken = async () => {
     try {
@@ -12,6 +12,12 @@ const getAuthToken = async () => {
         console.error("No active session", err);
         return null;
     }
+};
+
+export const getVendors = async (): Promise<Vendor[]> => {
+    const response = await fetch(`${BASE_URL}/vendors`);
+    if (!response.ok) throw new Error("Failed to fetch");
+    return response.json();
 };
 
 export const createVendor = async (vendor: Vendor) => {
@@ -28,13 +34,6 @@ export const createVendor = async (vendor: Vendor) => {
     if (!response.ok) throw new Error("Failed to create vendor");
     return response.json();
 };
-
-export const getVendors = async (): Promise<Vendor[]> => {
-    const response = await fetch(`${BASE_URL}/vendors`);
-    if (!response.ok) throw new Error("Failed to fetch");
-    return response.json();
-};
-
 
 export const deleteVendor = async (vendorId: string) => {
     const session = await fetchAuthSession();

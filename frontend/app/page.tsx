@@ -1,191 +1,148 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { createVendor, getVendors, deleteVendor, updateVendor } from '@/lib/api';
-import { Vendor } from '@/types/vendor';
-import { withAuthenticator, type WithAuthenticatorProps } from '@aws-amplify/ui-react';
+
+import { useState, useEffect } from 'react';
+import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
+import { getVendors, createVendor, deleteVendor } from '@/lib/api';
+import { Vendor } from '@/types/vendor';
 
-
-function Home({ signOut, user }: WithAuthenticatorProps) {
+// withAuthenticator injects `signOut` and `user` as props automatically
+function Home({ signOut, user }: { signOut?: () => void; user?: any }) {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [form, setForm] = useState({ name: '', category: '', contactEmail: '' });
   const [loading, setLoading] = useState(false);
-  const [editingVendorId, setEditingVendorId] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const loadVendors = async () => {
-    const data = await getVendors();
-    setVendors(data);
+    try {
+      const data = await getVendors();
+      setVendors(data);
+    } catch {
+      setError('Failed to load vendors.');
+    }
   };
 
   useEffect(() => {
     loadVendors();
   }, []);
 
-  const resetForm = () => {
-    setForm({ name: '', category: '', contactEmail: '' });
-    setEditingVendorId(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    setError('');
     try {
-      if (editingVendorId) {
-        // UPDATE
-        await updateVendor({
-          vendorId: editingVendorId,
-          ...form,
-        });
-        alert('Vendor updated!');
-      } else {
-        // CREATE
-        await createVendor(form);
-        alert('Vendor added!');
-      }
-
+      await createVendor(form);
+      setForm({ name: '', category: '', contactEmail: '' });
       await loadVendors();
-      resetForm();
-    } catch (err) {
-      console.error(err);
-      alert('Error saving vendor');
+    } catch {
+      setError('Failed to add vendor.');
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteVendorById = async (vendorId: string) => {
-    if (!confirm('Are you sure you want to delete this vendor?')) return;
-
+  const handleDelete = async (vendorId: string) => {
     try {
       await deleteVendor(vendorId);
       await loadVendors();
-      alert('Vendor deleted!');
-    } catch (err) {
-      console.error(err);
-      alert('Error deleting vendor');
+    } catch {
+      setError('Failed to delete vendor.');
     }
   };
 
-  const startEditing = (vendor: Vendor) => {
-    setForm({
-      name: vendor.name,
-      category: vendor.category || '',
-      contactEmail: vendor.contactEmail || '',
-    });
-    setEditingVendorId(vendor.vendorId || null);
-  };
-
-
   return (
-    <>
-
-      <header className="flex justify-between items-center mb-8 bg-gray-100 p-4 rounded">
+    <main className="p-10 max-w-5xl mx-auto">
+      {/* ── Header ── */}
+      <header className="flex justify-between items-center mb-8 p-4 bg-gray-100 rounded">
         <div>
-          <h1 className="text-xl font-bold text-black">Vendor Tracker</h1>
-          <p className="text-sm text-gray-600">Logged in as: {user?.signInDetails?.loginId}</p>
+          <h1 className="text-xl font-bold text-gray-900">Vendor Tracker</h1>
+          <p className="text-sm text-gray-500">Signed in as: {user?.signInDetails?.loginId}</p>
         </div>
         <button
           onClick={signOut}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
         >
           Sign Out
         </button>
       </header>
 
-      <main className="p-10 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
+      )}
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+        {/* ── Add Vendor Form ── */}
         <section>
-          <h2 className="text-xl font-bold mb-4">
-            {editingVendorId ? 'Edit Vendor' : 'Add New Vendor'}
-          </h2>
-
+          <h2 className="text-xl font-semibold mb-4 text-white">Add New Vendor</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
-              className="w-full p-2 border rounded text-white placeholder:text-gray-400"
+              className="w-full p-2 border rounded text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
               placeholder="Vendor Name"
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               required
             />
-
             <input
-              className="w-full p-2 border rounded text-white placeholder:text-gray-400"
+              className="w-full p-2 border rounded text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
               placeholder="Category (e.g. SaaS, Hardware)"
               value={form.category}
               onChange={e => setForm({ ...form, category: e.target.value })}
+              required
             />
-
             <input
-              className="w-full p-2 border rounded text-white placeholder:text-gray-400"
-              placeholder="Email"
+              className="w-full p-2 border rounded text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+              placeholder="Contact Email"
               type="email"
               value={form.contactEmail}
               onChange={e => setForm({ ...form, contactEmail: e.target.value })}
+              required
             />
-
             <button
+              type="submit"
               disabled={loading}
               className="w-full bg-orange-500 text-white p-2 rounded hover:bg-orange-600 disabled:bg-gray-400"
             >
-              {loading
-                ? 'Saving...'
-                : editingVendorId
-                ? 'Update Vendor'
-                : 'Add Vendor'}
+              {loading ? 'Saving...' : 'Add Vendor'}
             </button>
-
-            {editingVendorId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="w-full bg-gray-300 text-black p-2 rounded"
-              >
-                Cancel Edit
-              </button>
-            )}
           </form>
         </section>
 
-        {/* LIST */}
+        {/* ── Vendor List ── */}
         <section>
-          <h2 className="text-xl font-bold mb-4">Current Vendors</h2>
-          <div className="space-y-2">
-            {vendors.map((v) => (
-              <div
-                key={v.vendorId}
-                className="p-4 border rounded shadow-sm bg-white text-black"
-              >
-                <p className="font-bold">{v.name}</p>
-                <p className="text-sm text-gray-600">
-                  {v.category} • {v.contactEmail}
-                </p>
-
-                <button
-                  className="text-red-500 text-sm"
-                  onClick={() => v.vendorId && deleteVendorById(v.vendorId)}
+          <h2 className="text-xl font-semibold mb-4 text-white">
+            Current Vendors ({vendors.length})
+          </h2>
+          <div className="space-y-3">
+            {vendors.length === 0 ? (
+              <p className="text-gray-400 italic">No vendors yet.</p>
+            ) : (
+              vendors.map(v => (
+                <div
+                  key={v.vendorId}
+                  className="p-4 border rounded shadow-sm bg-white flex justify-between items-start"
                 >
-                  Delete
-                </button>
-
-                <button
-                  className="text-blue-500 text-sm ml-4"
-                  onClick={() => startEditing(v)}
-                >
-                  Edit
-                </button>
-              </div>
-            ))}
-
-            {vendors.length === 0 && (
-              <p className="text-gray-400">No vendors found.</p>
+                  <div>
+                    <p className="font-semibold text-gray-900">{v.name}</p>
+                    <p className="text-sm text-gray-500">{v.category} · {v.contactEmail}</p>
+                  </div>
+                  <button
+                    onClick={() => v.vendorId && handleDelete(v.vendorId)}
+                    className="ml-4 text-sm text-red-500 hover:text-red-700 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))
             )}
           </div>
         </section>
 
-      </main>
-    </>
+      </div>
+    </main>
   );
 }
 
+// Wrapping Home with withAuthenticator means any user who is not logged in
+// will see Amplify's built-in login/signup screen instead of this component.
 export default withAuthenticator(Home);

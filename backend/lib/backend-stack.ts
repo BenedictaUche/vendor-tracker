@@ -23,6 +23,7 @@ export class BackendStack extends cdk.Stack {
     const vendorTable = new dynamodb.Table(this, 'VendorTable', {
       partitionKey: { name: 'vendorId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     /*
@@ -34,12 +35,13 @@ export class BackendStack extends cdk.Stack {
       TABLE_NAME: vendorTable.tableName,
     };
 
-    const createVendorLambda = new lambda.Function(this, 'CreateVendorHandler', {
+    const createVendorLambda = new NodejsFunction(this, 'CreateVendorHandler', {
       runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset('lambda'),
-      handler: 'createVendor.handler',
+      entry: 'lambda/createVendor.ts',
+      handler: 'handler',
       environment: lambdaEnv,
     });
+
 
     const getVendorsLambda = new NodejsFunction(this, 'GetVendorsHandler', {
       entry: 'lambda/getVendors.ts',
@@ -53,11 +55,14 @@ export class BackendStack extends cdk.Stack {
       environment: lambdaEnv,
     });
 
-    const updateVendorLambda = new NodejsFunction(this, 'UpdateVendorHandler', {
-      entry: 'lambda/updateVendor.ts',
-      handler: 'handler',
-      environment: lambdaEnv,
-    });
+     /*
+     ==========================================
+     PERMISSIONS
+     ==========================================
+    */
+    vendorTable.grantWriteData(createVendorLambda);
+    vendorTable.grantReadData(getVendorsLambda);
+    vendorTable.grantWriteData(deleteVendorLambda);
 
     /*
      ==========================================
@@ -70,6 +75,7 @@ export class BackendStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type', 'Authorization'],
       },
     });
 
@@ -78,7 +84,6 @@ export class BackendStack extends cdk.Stack {
     const createIntegration = new apigateway.LambdaIntegration(createVendorLambda);
     const getIntegration = new apigateway.LambdaIntegration(getVendorsLambda);
     const deleteIntegration = new apigateway.LambdaIntegration(deleteVendorLambda);
-    const updateIntegration = new apigateway.LambdaIntegration(updateVendorLambda);
 
     /*
      ==========================================
@@ -88,7 +93,7 @@ export class BackendStack extends cdk.Stack {
     const userPool = new cognito.UserPool(this, 'VendorUserPool', {
       selfSignUpEnabled: true,
       signInAliases: { email: true },
-      // autoVerify: { email: true },
+      autoVerify: { email: true },
       userVerification: {
         emailStyle: cognito.VerificationEmailStyle.LINK,
       },
@@ -125,20 +130,7 @@ export class BackendStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
-    vendors.addMethod('PUT', updateIntegration, {
-      authorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-    });
 
-    /*
-     ==========================================
-     PERMISSIONS
-     ==========================================
-    */
-    vendorTable.grantWriteData(createVendorLambda);
-    vendorTable.grantReadData(getVendorsLambda);
-    vendorTable.grantWriteData(deleteVendorLambda);
-    vendorTable.grantWriteData(updateVendorLambda);
 
     /*
      ==========================================

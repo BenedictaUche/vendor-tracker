@@ -3,4 +3,5 @@ export interface Vendor {
   name: string;
   category: string;
   contactEmail: string;
+  createdAt?: string;
 }

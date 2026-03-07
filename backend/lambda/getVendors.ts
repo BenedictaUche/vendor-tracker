@@ -6,21 +6,23 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async () => {
   try {
-    const command = new ScanCommand({
-      TableName: process.env.TABLE_NAME,
-    });
-
-    const response = await docClient.send(command);
+    const response = await docClient.send(
+      new ScanCommand({
+        TableName: process.env.TABLE_NAME!,
+      })
+    );
 
     return {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(response.Items),
+      body: JSON.stringify(response.Items ?? []),
     };
   } catch (error) {
+    console.error("Error fetching vendors:", error);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
