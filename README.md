@@ -2,7 +2,7 @@
 
 A full-stack vendor management application built with Next.js, AWS CDK, Lambda, DynamoDB, and Cognito. Built as a learning reference for frontend developers transitioning into cloud and serverless development.
 
-> **Full tutorial:** [Insert article title + link]
+<!-- > **Full tutorial:** [Insert article title + link] -->
 
 ---
 
@@ -282,7 +282,7 @@ CDK will prompt for confirmation before deleting. The S3 bucket and DynamoDB tab
 
 > This removal policy is intentional for a learning project. Change it to `RemovalPolicy.RETAIN` in `backend-stack.ts` before using this in any environment with real data.
 
----
+<!-- ---
 
 ## Full Tutorial
 
@@ -290,4 +290,4 @@ This repository is the reference implementation for the tutorial:
 
 **[[Build a Fullstack vendor management app using React, AWS and CDK](https://techwriterb.medium.com/build-a-full-stack-vendor-management-app-using-react-aws-and-cdk-51941832c566)]**
 
-The article covers every step from AWS account setup through CDK deployment, authentication, and CloudFront hosting, with explanations of each architectural decision.
+The article covers every step from AWS account setup through CDK deployment, authentication, and CloudFront hosting, with explanations of each architectural decision. -->
