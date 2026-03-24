@@ -33,7 +33,7 @@ Browser → CloudFront → API Gateway → Lambda → DynamoDB
 
 The React frontend is served through CloudFront as a static export. API requests go through API Gateway, which validates the user's Cognito JWT token before routing the request to the appropriate Lambda function. Lambda reads and writes to a DynamoDB table. Unauthenticated requests are rejected before they reach Lambda.
 
-For a full explanation of each layer, the request lifecycle, and the reasoning behind infrastructure decisions, see the complete tutorial: [Insert article title + link].
+For a full explanation of each layer, the request lifecycle, and the reasoning behind infrastructure decisions, see the complete tutorial: [How to Build a Full-Stack CRUD App with React, AWS Lambda, DynamoDB, and Cognito Auth](https://www.freecodecamp.org/news/full-stack-aws-react-lambda-dynamodb-tutorial)].
 
 ---
 
