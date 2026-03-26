@@ -1,21 +1,27 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteVendorSchema } from "./schemas";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async (event: any) => {
   try {
-    const body = JSON.parse(event.body);
-    const { vendorId } = body;
+    const rawBody = JSON.parse(event.body ?? '{}');
 
-    if (!vendorId) {
+    const parseResult = DeleteVendorSchema.safeParse(rawBody);
+    if (!parseResult.success) {
       return {
         statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: "vendorId is required" }),
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          error: 'Validation failed',
+          details: parseResult.error.flatten().fieldErrors,
+        }),
       };
     }
+
+    const { vendorId } = parseResult.data;
 
     await docClient.send(
       new DeleteCommand({
@@ -26,19 +32,23 @@ export const handler = async (event: any) => {
 
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        "Access-Control-Allow-Methods": "OPTIONS,POST,GET,DELETE",
-      },
-      body: JSON.stringify({ message: "Vendor deleted" }),
+      headers: corsHeaders(),
+      body: JSON.stringify({ message: 'Vendor deleted' }),
     };
   } catch (error) {
-    console.error("Error deleting vendor:", error);
+    console.error('Error deleting vendor:', error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "Failed to delete vendor" }),
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
 };
+
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,DELETE,PUT',
+  };
+}
