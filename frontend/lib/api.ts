@@ -50,3 +50,20 @@ export const deleteVendor = async (vendorId: string) => {
     if (!response.ok) throw new Error("Failed to delete vendor");
     return response.json();
 };
+
+
+export const updateVendor = async (
+    vendorId: string,
+    updates: Partial<Omit<Vendor, 'vendorId' | 'createdAt'>>
+): Promise<void> => {
+    const token = await getAuthToken();
+    const response = await fetch(`${BASE_URL}/vendors`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token || "",
+        },
+        body: JSON.stringify({ vendorId, ...updates }),
+    });
+    if (!response.ok) throw new Error('Failed to update vendor');
+};
