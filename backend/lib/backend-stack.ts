@@ -202,9 +202,9 @@ export class BackendStack extends cdk.Stack {
     });
 
     /*
-     ==========================================
+     =============================
      MONITORING
-     ==========================================
+     =============================
     */
     const dashboard = new cloudwatch.Dashboard(this, 'VendorTrackerDash', {
       dashboardName: `VendorTrackerPerformance-${envName}`,
