@@ -101,7 +101,6 @@ jobs:
             --stack-name VendorTracker-staging \
             --query "Stacks[0].Outputs[?OutputKey=='StagingDistributionId'].OutputValue" \
             --output text)
-
           aws cloudfront create-invalidation \
             --distribution-id $DISTRIBUTION_ID \
             --paths "/*"
@@ -173,7 +172,6 @@ jobs:
             --stack-name VendorTracker-production \
             --query "Stacks[0].Outputs[?OutputKey=='ProdDistributionId'].OutputValue" \
             --output text)
-
           aws cloudfront create-invalidation \
             --distribution-id $DISTRIBUTION_ID \
             --paths "/*"
