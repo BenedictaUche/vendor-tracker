@@ -1,21 +1,18 @@
 name: Test, Build, and Deploy
 
-# Run this workflow on every push to main
 on:
   push:
     branches:
       - main
-  # allow manual triggering from the GitHub Actions UI
+      - master
   workflow_dispatch:
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
 
 jobs:
-
-  # Job 1: Run Tests
   test:
-    name: Run Lambda Tests
+    name: Run Backend Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +22,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install backend dependencies
@@ -37,11 +34,10 @@ jobs:
         working-directory: backend
         run: npm test
 
-  # Job 2: Deploy Staging
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: test  # Only runs if tests pass
+    needs: test
     environment: staging
 
     steps:
@@ -51,8 +47,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
@@ -67,13 +63,6 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
-
-      - name: Install CDK globally
-        run: npm install -g aws-cdk
-
-      - name: Deploy backend stack to staging
-        working-directory: backend
-        run: cdk deploy -c env=staging --require-approval never
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -87,12 +76,24 @@ jobs:
           NEXT_PUBLIC_USER_POOL_CLIENT_ID: ${{ secrets.STAGING_USER_POOL_CLIENT_ID }}
         run: npm run build
 
-      - name: Sync frontend to S3 (staging)
+      - name: Verify frontend build output
+        run: ls -la frontend && ls -la frontend/out
+
+      - name: Install CDK globally
+        run: npm install -g aws-cdk
+
+      - name: Deploy backend stack to staging
+        working-directory: backend
+        run: cdk deploy -c env=staging --require-approval never
+
+      - name: Upload frontend to S3 (staging)
         run: |
-          aws s3 sync frontend/out/ s3://$(aws cloudformation describe-stacks \
+          BUCKET_NAME=$(aws cloudformation describe-stacks \
             --stack-name VendorTracker-staging \
             --query "Stacks[0].Outputs[?OutputKey=='StagingBucketName'].OutputValue" \
-            --output text) --delete
+            --output text)
+
+          aws s3 sync frontend/out/ s3://$BUCKET_NAME --delete
 
       - name: Invalidate CloudFront cache (staging)
         run: |
@@ -100,16 +101,16 @@ jobs:
             --stack-name VendorTracker-staging \
             --query "Stacks[0].Outputs[?OutputKey=='StagingDistributionId'].OutputValue" \
             --output text)
+
           aws cloudfront create-invalidation \
             --distribution-id $DISTRIBUTION_ID \
             --paths "/*"
 
-  # Job 3: Deploy Production
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: deploy-staging  # Only runs if staging deployment succeeded
-    environment: production  # Requires manual approval in GitHub (configured below)
+    needs: deploy-staging
+    environment: production
 
     steps:
       - name: Checkout code
@@ -118,8 +119,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
@@ -135,13 +136,6 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Install CDK globally
-        run: npm install -g aws-cdk
-
-      - name: Deploy backend stack to production
-        working-directory: backend
-        run: cdk deploy -c env=production --require-approval never
-
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -154,12 +148,24 @@ jobs:
           NEXT_PUBLIC_USER_POOL_CLIENT_ID: ${{ secrets.PROD_USER_POOL_CLIENT_ID }}
         run: npm run build
 
-      - name: Sync frontend to S3 (production)
+      - name: Verify frontend build output
+        run: ls -la frontend && ls -la frontend/out
+
+      - name: Install CDK globally
+        run: npm install -g aws-cdk
+
+      - name: Deploy backend stack to production
+        working-directory: backend
+        run: cdk deploy -c env=production --require-approval never
+
+      - name: Upload frontend to S3 (production)
         run: |
-          aws s3 sync frontend/out/ s3://$(aws cloudformation describe-stacks \
+          BUCKET_NAME=$(aws cloudformation describe-stacks \
             --stack-name VendorTracker-production \
             --query "Stacks[0].Outputs[?OutputKey=='ProdBucketName'].OutputValue" \
-            --output text) --delete
+            --output text)
+
+          aws s3 sync frontend/out/ s3://$BUCKET_NAME --delete
 
       - name: Invalidate CloudFront cache (production)
         run: |
@@ -167,6 +173,7 @@ jobs:
             --stack-name VendorTracker-production \
             --query "Stacks[0].Outputs[?OutputKey=='ProdDistributionId'].OutputValue" \
             --output text)
+
           aws cloudfront create-invalidation \
             --distribution-id $DISTRIBUTION_ID \
             --paths "/*"
