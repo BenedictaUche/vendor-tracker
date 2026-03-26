@@ -79,7 +79,7 @@ npm install -g aws-cdk
 cdk --version
 ```
 
-> If you haven't set up your IAM user or AWS CLI credentials yet, the tutorial covers this in detail: [How to Build a Full-Stack CRUD App with React, AWS Lambda, DynamoDB, and Cognito Auth](https://www.freecodecamp.org/news/full-stack-aws-react-lambda-dynamodb-tutorial)]
+> If you haven't set up your IAM user or AWS CLI credentials yet, the tutorial covers this in detail: [How to Build a Full-Stack CRUD App with React, AWS Lambda, DynamoDB, and Cognito Auth](https://www.freecodecamp.org/news/full-stack-aws-react-lambda-dynamodb-tutorial)
 
 ---
 
