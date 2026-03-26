@@ -194,12 +194,12 @@ export class BackendStack extends cdk.Stack {
       ],
     });
 
-    new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-      sources: [s3deploy.Source.asset('../frontend/out')],
-      destinationBucket: siteBucket,
-      distribution,
-      distributionPaths: ['/*'],
-    });
+    // new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+    //   sources: [s3deploy.Source.asset('../frontend/out')],
+    //   destinationBucket: siteBucket,
+    //   distribution,
+    //   distributionPaths: ['/*'],
+    // });
 
     /*
      =============================
